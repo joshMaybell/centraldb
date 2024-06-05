@@ -1,0 +1,8 @@
+{
+    "typeCheckingMode": "strict",
+    "disableBytesTypePromotions":true,
+    "executionEnvironments": [
+        {"root": "src"}
+    ]
+
+}
