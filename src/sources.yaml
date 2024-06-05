@@ -1,0 +1,13 @@
+sources:
+  -
+    name: test
+    url: http://localhost:8686
+    token: 12345678=
+    org: maybell
+    bucket: datadb
+  -
+    name: launch-new
+    url: http://different:8686
+    token: 12345678=
+    org: maybell
+    bucket: datadb
