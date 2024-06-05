@@ -16,7 +16,7 @@ import env
 _DEFAULT_ENGINE = sqlalchemy.create_engine(env.DB)
 
 
-class DbState(sqlalchemy.orm.declarative_base()):
+class _DbState(sqlalchemy.orm.declarative_base()):
     __tablename__ = "db_state"
 
     id: sqlalchemy.orm.Mapped[int] = sqlalchemy.orm.mapped_column(primary_key=True)
@@ -48,7 +48,7 @@ def init_engine(
     exc: sqlalchemy.exc.SQLAlchemyError | None = None
     for _ in range(5):
         try:
-            DbState.metadata.create_all(engine)
+            _DbState.metadata.create_all(engine)
             return True
         except sqlalchemy.exc.SQLAlchemyError as e:
             time.sleep(1)
@@ -85,10 +85,10 @@ def update(
         sync_time = time.time()
 
     with sqlalchemy.orm.Session(engine, expire_on_commit=False) as session:
-        db = session.query(DbState).filter(DbState.db_name == db_name).first()
+        db = session.query(_DbState).filter(_DbState.db_name == db_name).first()
 
         if db is None:
-            db = DbState()
+            db = _DbState()
             db.db_name = db_name
             db.sync_time = sync_time
             session.add(db)
@@ -113,7 +113,7 @@ def get_sync_time(db_name: str, engine: sqlalchemy.Engine | None = None):
         engine = _DEFAULT_ENGINE
 
     with sqlalchemy.orm.Session(engine, expire_on_commit=False) as session:
-        db = session.query(DbState).filter(DbState.db_name == db_name).first()
+        db = session.query(_DbState).filter(_DbState.db_name == db_name).first()
 
         if db is None:
             return 0
