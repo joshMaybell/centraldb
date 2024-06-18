@@ -191,13 +191,30 @@ def main():
 
     db.init_engine()
 
-    with open("sources.yaml", encoding="utf-8") as f:
-        dbs = _validate_sources(yaml.safe_load(f.read()))
+    while True:
 
-    for d in dbs:
-        t = db.get_sync_time(d.name)
-        _sync_db(d, t)
-        db.update(d.name)
+        with open("sources.yaml", encoding="utf-8") as f:
+            config: dict[str, YamlType] = yaml.safe_load(f.read())
+            dbs = _validate_sources(config)
+            delay = config.get("sync-rate", 600)
+            if not isinstance(delay, (float, int)):
+                print(
+                    "CONFIG ERROR: 'sync-rate' is an invalid type. "
+                    + "Expected a numeric type, but got: ",
+                    type(delay),
+                )
+                print("Defaulting to default sync-rate: ", 600)
+                delay = 600
+
+        for d in dbs:
+            t = db.get_sync_time(d.name)
+            try:
+                _sync_db(d, t)
+                db.update(d.name)
+            except IOError as e:
+                print("FAILED TO SYNC DB:", d.name, " do to error: ", e)
+
+        time.sleep(delay)
 
 
 if __name__ == "__main__":

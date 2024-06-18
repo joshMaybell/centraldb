@@ -11,3 +11,5 @@ sources:
     token: 12345678=
     org: maybell
     bucket: datadb
+
+delay: 600
