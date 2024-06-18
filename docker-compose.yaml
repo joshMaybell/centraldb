@@ -17,6 +17,12 @@ services:
       - influxdb-data:/var/lib/influxdb2
       - influxdb-config:/etc/influxdb2
 
+  backup-db:
+    build: .
+    depends_on:
+      - influxdb
+
+
   test-idb:
     image: influxdb:2.7
     ports:
