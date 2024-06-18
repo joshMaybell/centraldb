@@ -167,7 +167,7 @@ def _sync_db(source: _DB, start_time: float, end_time: float | None = None):
     dest_bucket_name = source.name
 
     dest_client = influxdb_client.InfluxDBClient(
-        url="http://localhost:8086", token="12345678=", org="maybell"
+        url=env.LOCAL_IDB_URL, token="12345678=", org="maybell"
     )
 
     _ensure_bucket_exists(dest_bucket_name, dest_client)

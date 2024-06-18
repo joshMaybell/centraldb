@@ -21,6 +21,8 @@ services:
     build: .
     depends_on:
       - influxdb
+    environment:
+      - LOCAL_IDB_URL=http://influxdb:8086
 
 
   test-idb:
