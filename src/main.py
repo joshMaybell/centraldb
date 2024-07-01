@@ -217,11 +217,17 @@ def main():
         for d in dbs:
             t = db.get_sync_time(d.name)
             try:
+                print(f"Syncing db '{d.name}...'")
                 _sync_db(d, t)
+                print(f"Updating sync state...")
                 db.update(d.name)
+                print(f"'{d.name}' finished syncing.")
             except (IOError, urllib3.exceptions.NewConnectionError) as e:
                 print("FAILED TO SYNC DB:", d.name, " do to error: ", e)
 
+            print("\n")
+
+        print(f"Sync cycle finished. Will run again in {delay} seconds.")
         time.sleep(delay)
 
 
