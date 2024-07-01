@@ -219,7 +219,7 @@ def main():
             try:
                 _sync_db(d, t)
                 db.update(d.name)
-            except IOError as e:
+            except (IOError, urllib3.exceptions.NewConnectionError) as e:
                 print("FAILED TO SYNC DB:", d.name, " do to error: ", e)
 
         time.sleep(delay)
