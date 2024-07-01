@@ -125,11 +125,11 @@ def _query_all(
 ):
 
     start_str = f"start: {_format_time(start_time)}"
-    end_str = "" if end_time is None else f", end: {_format_time(end_time)}"
+    end_str = "" if end_time is None else f", stop: {_format_time(end_time)}"
     query = f"""from(bucket: "{bucket}")
                      |> range({start_str}{end_str})"""
 
-    return query_api.query(query)
+    return query_api.query_stream(query)
 
 
 def _ensure_bucket_exists(bucket: str, client: influxdb_client.InfluxDBClient):
@@ -162,13 +162,12 @@ def _sync_db(source: _DB, start_time: float, end_time: float | None = None):
 
     query_api = client.query_api()
 
-    tables = _query_all(query_api, source.bucket, start_time, end_time)
-
     dest_bucket_name = source.name
-
     dest_client = influxdb_client.InfluxDBClient(
         url=env.LOCAL_IDB_URL, token="12345678=", org="maybell"
     )
+
+    tables = _query_all(query_api, source.bucket, start_time, end_time)
 
     _ensure_bucket_exists(dest_bucket_name, dest_client)
 
@@ -176,12 +175,21 @@ def _sync_db(source: _DB, start_time: float, end_time: float | None = None):
         write_options=influxdb_client.client.write_api.SYNCHRONOUS
     ) as write_api:
 
-        points: list[influxdb_client.Point] = []
-        for table in tables:
-            for record in table.records:
-                points.append(_record_to_point(record))
+        all_points_consumed = False
 
-        write_api.write(bucket=dest_bucket_name, record=points)
+        while not all_points_consumed:
+            points: list[influxdb_client.Point] = []
+
+            # Consume 10000 points at a time.
+            for _ in range(10000):
+                try:
+                    points.append(_record_to_point(next(tables)))
+                except StopIteration:
+                    all_points_consumed = True
+                    break
+
+            if points:
+                write_api.write(bucket=dest_bucket_name, record=points)
 
 
 def main():
