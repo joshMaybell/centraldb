@@ -189,7 +189,10 @@ def _sync_db(source: _DB, start_time: float, end_time: float | None = None):
                     break
 
             if points:
-                write_api.write(bucket=dest_bucket_name, record=points)
+                for _ in range(5):
+                    try:
+                        write_api.write(bucket=dest_bucket_name, record=points)
+                    except Exception:
 
 
 def main():
@@ -219,7 +222,7 @@ def main():
             try:
                 print(f"Syncing db '{d.name}...'")
                 _sync_db(d, t)
-                print(f"Updating sync state...")
+                print("Updating sync state...")
                 db.update(d.name)
                 print(f"'{d.name}' finished syncing.")
             except (IOError, urllib3.exceptions.NewConnectionError) as e:
